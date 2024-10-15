@@ -16,7 +16,6 @@
                 <input type="text" placeholder="Search:" id="search" name="search" value="{{ request.args.get('search', '') }}">
                 <button type="submit" class="search-button">Search</button>
             </div>
-            
         </form>
 
         <p>Browse the latest events:</p>
@@ -31,10 +30,12 @@
                         <p><strong>Date:</strong> {{ event.date }}</p>
                         <p><strong>Time:</strong> {{ event.time }}</p>
                         <p><strong>Location:</strong> {{ event.location }}</p>
-                        <p><strong>Creator:</strong> {{event.creator}}</p>
-                        <a href="{{ url_for('rsvp_page', event_id=event['_id']) }}"><button>RSVP</button></a>
+                        <p><strong>Creator:</strong> {{ event.creator }}</p>
+                        <p><strong>Photo:</strong></p>
+                        <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="max-width: 300px;">
 
-            </div>
+                        <a href="{{ url_for('rsvp_page', event_id=event['_id']) }}"><button>RSVP</button></a>
+                    </div>
                 </details>
             {% endfor %}
             </ul>
@@ -48,7 +49,4 @@
             <a href="{{ url_for('create_event') }}"><button>Create Event</button></a>
             <a href="{{ url_for('logout') }}"><button>Logout</button></a>
         </div>
-    </div>
-
-</body>
-</html>
+    </di

@@ -14,6 +14,10 @@
         <p>Time: {{ event.time }}</p>
         <p>Location: {{ event.location }}</p>
         <p>Creator: {{ event.creator }}</p>
+
+        <p><strong>Photo:</strong></p>
+            <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="max-width: 300px;">
+
     
         <div id="rsvp-buttons">
             <form method="POST" action="{{ url_for('rsvp_event', event_id=event['_id']) }}">

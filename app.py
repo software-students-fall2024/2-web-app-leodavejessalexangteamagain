@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from bson.objectid import ObjectId
 import bcrypt
 import os
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
@@ -20,6 +21,16 @@ db = client["occasio"]
 
 collection = db["users"]
 events_collection = db["events"]
+
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+def allowed_file(filename):
+    extension = os.path.splitext(filename)[1].lower()  
+    return extension in ['.png', '.jpg', '.jpeg', '.gif']
 
 @app.route('/')
 def home():
@@ -108,7 +119,15 @@ def create_event():
         date = request.form['date']
         time = request.form['time']
         location = request.form['location']
-        creator = session['username']  
+        creator = session['username']
+        photo_url = None
+
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                photo_url = os.path.join('uploads', filename)  
 
         event_id = events_collection.insert_one({
             "title": title,
@@ -117,6 +136,7 @@ def create_event():
             "time": time,
             "location": location,
             "creator": creator, 
+            "photo": photo_url, 
             "attendees": []  
         }).inserted_id
 
@@ -261,26 +281,38 @@ def hosting_list():
 
     return render_template('hosting_events.html', events=hosting_events)
 
-
 @app.route('/delete_event/<event_id>', methods=['POST'])
 def delete_event(event_id):
     if 'username' not in session:
         return redirect(url_for('login'))
     
+    # Find the event
     event = events_collection.find_one({'_id': ObjectId(event_id), 'creator': session['username']})
 
     if not event:
         flash("Event not found.")
         return redirect(url_for('hosting_events'))
     
+    # Check if the event has a photo and delete it
+    photo_url = event.get('photo')
+    if photo_url:
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(photo_url))
+        if os.path.exists(photo_path):
+            try:
+                os.remove(photo_path)  # Remove the photo file from the uploads folder
+            except OSError as e:
+                flash(f"Error deleting file: {e.strerror}")
+    
+    # Delete the event from the database
     events_collection.delete_one({'_id': ObjectId(event_id)})
 
+    # Remove the event from the user's created_events list
     collection.update_one(
         {'username': session['username']},
         {'$pull': {'created_events': ObjectId(event_id)}}
     )
 
-    flash("{event['title']} deleted successfully.")
+    flash(f"Event '{event['title']}' deleted successfully.")
     return redirect(url_for('hosting_list'))
 
 @app.route('/edit_event/<event_id>', methods=['GET', 'POST'])

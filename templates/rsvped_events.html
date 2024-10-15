@@ -21,6 +21,9 @@
                     <p>Time: {{ event.time }}</p>
                     <p>Location: {{ event.location }}</p>
                     <p>Creator: {{ event.creator }}</p>
+                    <p><strong>Description:</strong> {{ event.description }}</p>
+                    <p><strong>Photo:</strong></p>
+                    <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="max-width: 300px;">
 
 
                     <h4>Attendees List ({{ event.total_attendees }}):</h4> 
