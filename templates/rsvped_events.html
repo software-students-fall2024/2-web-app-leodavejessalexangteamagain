@@ -23,6 +23,7 @@
                         <p><strong>Date:</strong> {{ event.date }}</p>
                         <p><strong>Time:</strong> {{ event.time }}</p>
                         <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Creator:</strong> {{ event.creator }}</p>
                         <p><strong>Attendees List ({{ event.total_attendees }}):</strong>
                             <ul class="attendees-list">
                                 {% if event.attendees_usernames %}
@@ -50,25 +51,31 @@
         {% if past_events %}
             <ul>
             {% for event in past_events %}
-                <li class="event-item">
-                    <h2>{{ event.title }}</h2>
-                    <p>{{ event.description }}</p>
-                    <p>Date: {{ event.date }}</p>
-                    <p>Time: {{ event.time }}</p>
-                    <p>Location: {{ event.location }}</p>
-                    <p>Creator: {{ event.creator }}</p>
+                <details>
+                    <summary>{{ event.title }}</summary>
+                    <div>
+                        <p><strong>Description:</strong> {{ event.description }}</p>
+                        <p><strong>Date:</strong> {{ event.date }}</p>
+                        <p><strong>Time:</strong> {{ event.time }}</p>
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Creator:</strong> {{ event.creator }}</p>
+                        <p><strong>Attendees List ({{ event.total_attendees }}):</strong>
+                            <ul class="attendees-list">
+                                {% if event.attendees_usernames %}
+                                    {% for attendee in event.attendees_usernames %}
+                                        <li>{{ attendee }}</li> 
+                                    {% endfor %}
+                                {% else %}
+                                    <li>No attendees yet.</li>
+                                {% endif %}
+                            </ul>
+                        </p>
 
-                    <h4>Attendees:</h4>
-                    <ul class="attendees-list">
-                    {% if event.attendees_usernames %}
-                        {% for attendee in event.attendees_usernames %}
-                            <li>{{ attendee }}</li> 
-                        {% endfor %}
-                    {% else %}
-                        <li>No attendees yet.</li>
-                    {% endif %}
-                    </ul>
-                </li>
+                        <form action="{{ url_for('delete_rsvp', event_id=event._id) }}" method="post">
+                            <button type="submit">Delete RSVP</button>
+                        </form>
+                    </div>
+                </details>
             {% endfor %}
             </ul>
         {% else %}
