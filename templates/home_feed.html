@@ -37,7 +37,7 @@
                         <p><strong>Time:</strong> {{ event.time }}</p>
                         <p><strong>Location:</strong> {{ event.location }}</p>
                         <p><strong>Creator:</strong> {{event.creator}}</p>
-                        <a href="{{ url_for('rsvp_page', event_id=event['_id']) }}"><button>RSVP</button></a>
+                        <a href="{{ url_for('rsvp_page', event_id=event['_id']) }}"><button id="create-button">RSVP</button></a>
                     </div>
                 </details>
             {% endfor %}
