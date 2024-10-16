@@ -1,10 +1,12 @@
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from pymongo import MongoClient
+import gridfs
 from dotenv import load_dotenv
 from bson.objectid import ObjectId
 import bcrypt
 import os
+import base64
 from werkzeug.utils import secure_filename
 
 load_dotenv()
@@ -18,6 +20,7 @@ MONGO_URI = os.getenv('MONGO_URI')
 client = MongoClient(MONGO_URI)
 
 db = client["occasio"]
+fs = gridfs.GridFS(db)
 
 collection = db["users"]
 events_collection = db["events"]
@@ -31,6 +34,10 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     extension = os.path.splitext(filename)[1].lower()  
     return extension in ['.png', '.jpg', '.jpeg', '.gif']
+
+@app.template_filter('b64encode')
+def b64encode_filter(data):
+    return base64.b64encode(data).decode('utf-8')
 
 @app.route('/')
 def home():
@@ -99,6 +106,13 @@ def home_feed():
                 event_time = datetime.strptime(event['date'] + " " + event['time'], "%Y-%m-%d %H:%M")
                 
                 if event_time > current_time:
+                    if event.get('photo'):
+                        try:
+                            event['photo_data'] = fs.get(event['photo']).read()
+                        except gridfs.errors.NoFile:
+                            event['photo_data'] = None
+                    else:
+                        event['photo_data'] = None
                     upcoming_events.append(event)
             except (KeyError, ValueError):
                 continue
@@ -120,14 +134,13 @@ def create_event():
         time = request.form['time']
         location = request.form['location']
         creator = session['username']  
-        photo_url = None
+        photo_id = None
 
         if 'photo' in request.files:
             photo = request.files['photo']
             if photo and allowed_file(photo.filename):
                 filename = secure_filename(photo.filename)
-                photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                photo_url = os.path.join('uploads', filename)  
+                photo_id = fs.put(photo.read(), filename=filename) 
 
         event_id = events_collection.insert_one({
             "title": title,
@@ -136,7 +149,7 @@ def create_event():
             "time": time,
             "location": location,
             "creator": creator,
-            "photo": photo_url,  
+            "photo": photo_id,  
             "attendees": []  
         }).inserted_id
 
@@ -225,8 +238,15 @@ def rsvp_list():
         attendee_ids = event.get('attendees', [])
         attendees = list(collection.find({"_id": {"$in": attendee_ids}}, {"username": 1}))
         event['attendees_usernames'] = [attendee['username'] for attendee in attendees]
-
         event['total_attendees'] = len(event['attendees_usernames'])
+
+        if event.get('photo'):
+            try:
+                event['photo_data'] = fs.get(event['photo']).read()
+            except gridfs.errors.NoFile:
+                event['photo_data'] = None
+        else:
+            event['photo_data'] = None
 
         if event_date >= current_time:
             upcoming_events.append(event)
@@ -279,8 +299,15 @@ def hosting_list():
         attendee_ids = event.get('attendees', [])
         attendees = list(collection.find({"_id": {"$in": attendee_ids}}, {"username": 1}))
         event['attendees_usernames'] = [attendee['username'] for attendee in attendees]
-
         event['total_attendees'] = len(event['attendees_usernames'])
+
+        if event.get('photo'):
+            try:
+                event['photo_data'] = fs.get(event['photo']).read()
+            except gridfs.errors.NoFile:
+                event['photo_data'] = None
+        else:
+            event['photo_data'] = None
 
     return render_template('hosting_events.html', events=hosting_events)
 
