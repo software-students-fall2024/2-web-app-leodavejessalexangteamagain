@@ -20,9 +20,7 @@
                     <summary>{{ event.title }}</summary>
                     <div>
                         {% if event.photo %}
-                            <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="max-width: 300px;">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='uploads/default_event_image.png') }}" alt="Default Event Photo" style="max-width: 300px;">
+                            <img src="data:image/jpeg;base64,{{ event.photo_data|b64encode }}" alt="{{ event.title }} photo" style="width:300px; height:auto;">
                         {% endif %}
                         <p><strong>Description:</strong> {{ event.description }}</p>
                         <p><strong>Date:</strong> {{ event.date }}</p>

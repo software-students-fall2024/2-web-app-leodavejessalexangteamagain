@@ -290,6 +290,14 @@ def hosting_page(event_id):
     
     event = events_collection.find_one({'_id': ObjectId(event_id)})
 
+    if event.get('photo'):
+        try:
+            event['photo_data'] = fs.get(event['photo']).read()
+        except gridfs.errors.NoFile:
+            event['photo_data'] = None
+    else:
+        event['photo_data'] = None
+
     if not event:
         flash("Event not found.")
         return redirect(url_for('home_feed'))
