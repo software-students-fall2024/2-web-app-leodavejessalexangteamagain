@@ -11,7 +11,15 @@
 
     <div class="container">
         <h1>Edit Event</h1>
-        <form action="{{ url_for('edit_event', event_id=event._id) }}" method="POST">
+        {% if event.photo %}
+        <div class="form-group">
+            <label for="current_photo">Current Photo:</label><br>
+            <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" class="event-photo">
+        </div>
+        <br>
+        {% endif %}
+
+        <form action="{{ url_for('edit_event', event_id=event._id) }}" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="title">Title:</label>
                 <input type="text" id="title" name="title" value="{{ event.title }}" required>
@@ -34,6 +42,12 @@
             <div class="form-group">
                 <label for="location">Location:</label>
                 <input type="text" id="location" name="location" value="{{ event.location }}" required>
+            </div>
+            <br>
+
+            <div class="form-group">
+                <label for="photo">Upload New Photo (optional):</label>
+                <input type="file" id="photo" name="photo" accept=".png, .jpg, .jpeg, .gif">
             </div>
             <br>
 

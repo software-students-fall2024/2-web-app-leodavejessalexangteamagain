@@ -29,6 +29,11 @@
                 <details>
                     <summary>{{ event.title }}</summary>
                     <div>
+                        {% if event.photo %}
+                        <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="width:300px; height:auto;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/default_event_image.png') }}" alt="Default Event Photo" style="width:300px; height:auto;">
+                        {% endif %}                        
                         <p><strong>Description:</strong> {{ event.description }}</p>
                         <p><strong>Date:</strong> {{ event.date }}</p>
                         <p><strong>Time:</strong> {{ event.time }}</p>

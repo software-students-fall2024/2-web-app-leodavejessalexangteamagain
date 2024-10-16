@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from bson.objectid import ObjectId
 import bcrypt
 import os
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
@@ -20,6 +21,16 @@ db = client["occasio"]
 
 collection = db["users"]
 events_collection = db["events"]
+
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+def allowed_file(filename):
+    extension = os.path.splitext(filename)[1].lower()  
+    return extension in ['.png', '.jpg', '.jpeg', '.gif']
 
 @app.route('/')
 def home():
@@ -109,6 +120,14 @@ def create_event():
         time = request.form['time']
         location = request.form['location']
         creator = session['username']  
+        photo_url = None
+
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                photo_url = os.path.join('uploads', filename)  
 
         event_id = events_collection.insert_one({
             "title": title,
@@ -116,7 +135,8 @@ def create_event():
             "date": date,
             "time": time,
             "location": location,
-            "creator": creator, 
+            "creator": creator,
+            "photo": photo_url,  
             "attendees": []  
         }).inserted_id
 
@@ -276,6 +296,15 @@ def delete_event(event_id):
         flash("Event not found.")
         return redirect(url_for('hosting_events'))
     
+    photo_url = event.get('photo')
+    if photo_url:
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(photo_url))
+        if os.path.exists(photo_path):
+            try:
+                os.remove(photo_path) 
+            except OSError as e:
+                flash(f"Error deleting file: {e.strerror}")
+    
     events_collection.delete_one({'_id': ObjectId(event_id)})
 
     collection.update_one(
@@ -303,6 +332,23 @@ def edit_event(event_id):
         date = request.form['date']
         time = request.form['time']
         location = request.form['location']
+        photo_url = event.get('photo') 
+        if 'photo' in request.files:
+            new_photo = request.files['photo']
+            if new_photo and allowed_file(new_photo.filename):
+                filename = secure_filename(new_photo.filename)
+                new_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                new_photo.save(new_path)
+                prev_url = event.get('photo')
+                if prev_url:
+                    prev_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(prev_url))
+                    if os.path.exists(prev_path):
+                        try:
+                            os.remove(prev_path)  
+                        except OSError as e:
+                            flash(f"Error deleting old photo: {e.strerror}")
+        
+                photo_url = os.path.join('uploads', filename)
 
         events_collection.update_one(
             {'_id': ObjectId(event_id)},
@@ -311,7 +357,8 @@ def edit_event(event_id):
                 'description': description,
                 'date': date,
                 'time': time,
-                'location': location
+                'location': location,
+                'photo': photo_url
             }}
         )
 
