@@ -37,9 +37,6 @@ label {
 }
 
 .login-register {
-    position: absolute;
-    top: 20px;
-    right: 30px;
     display: flex;
     gap: 10px;
 }
