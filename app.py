@@ -122,7 +122,10 @@ def create_event():
 
         collection.update_one(
             {"username": creator},
-            {"$push": {"created_events": event_id}}
+            {
+                "$push": {"created_events": event_id},
+                "$push": {"rsvped_events": event_id}
+            }
         )
 
         flash("Event created successfully!")
