@@ -9,13 +9,11 @@
 <body>
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Occasio Logo" class="logoelsewhere">
 
-    <div class="page-layout">
+    <div class="container" id="rsvp_page">
         <h1>RSVP for {{ event.title }}</h1>
         {% if event.photo %}
-            <img src="{{ url_for('static', filename=event.photo) }}" alt="Event Photo" style="width:300px; height:auto;">
-        {% else %}
-            <img src="{{ url_for('static', filename='uploads/default_event_image.png') }}" alt="Default Event Photo" style="width:300px; height:auto;">
-        {% endif %}        
+            <img src="data:image/jpeg;base64,{{ event.photo_data|b64encode }}" alt="{{ event.title }} photo" style="width:300px; height:auto;">
+        {% endif %}         
         <p>{{ event.description }}</p>
         <p>Date: {{ event.date }}</p>
         <p>Time: {{ event.time }}</p>
