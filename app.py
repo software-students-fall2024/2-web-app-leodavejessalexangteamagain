@@ -339,15 +339,6 @@ def delete_event(event_id):
         flash("Event not found.")
         return redirect(url_for('hosting_events'))
     
-    photo_url = event.get('photo')
-    if photo_url:
-        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(photo_url))
-        if os.path.exists(photo_path):
-            try:
-                os.remove(photo_path) 
-            except OSError as e:
-                flash(f"Error deleting file: {e.strerror}")
-    
     events_collection.delete_one({'_id': ObjectId(event_id)})
 
     collection.update_one(
