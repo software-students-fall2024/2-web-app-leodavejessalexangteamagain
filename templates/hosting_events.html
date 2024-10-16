@@ -39,10 +39,10 @@
 
                         <div class="button-container">
                             <a href="{{ url_for('edit_event', event_id=event._id) }}">
-                                <button>Edit Event</button>
+                                <button id="edit-button">Edit Event</button>
                             </a>
                             <form action="{{ url_for('delete_event', event_id=event._id) }}" method="POST" style="display:inline;">
-                                <button type="submit">Delete Event</button>
+                                <button id="delete-button" type="submit">Delete Event</button>
                             </form>
                         </div>
                     </div>

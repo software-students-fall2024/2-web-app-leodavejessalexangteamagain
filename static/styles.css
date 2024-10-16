@@ -13,6 +13,18 @@ body {
     align-items: center;
 }
 
+#delete-button {
+    background-color: rgb(217, 47, 47);
+}
+
+#edit-button {
+    background-color: rgb(247, 174, 37);
+}
+
+#create-button {
+    background-color: rgb(47, 162, 47);
+}
+
 #rsvp_page {
     display: flex;
     flex-direction: column;
