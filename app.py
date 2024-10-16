@@ -366,23 +366,12 @@ def edit_event(event_id):
         date = request.form['date']
         time = request.form['time']
         location = request.form['location']
-        photo_url = event.get('photo') 
+        photo_id = None
         if 'photo' in request.files:
-            new_photo = request.files['photo']
-            if new_photo and allowed_file(new_photo.filename):
-                filename = secure_filename(new_photo.filename)
-                new_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                new_photo.save(new_path)
-                prev_url = event.get('photo')
-                if prev_url:
-                    prev_path = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(prev_url))
-                    if os.path.exists(prev_path):
-                        try:
-                            os.remove(prev_path)  
-                        except OSError as e:
-                            flash(f"Error deleting old photo: {e.strerror}")
-        
-                photo_url = os.path.join('uploads', filename)
+            photo = request.files['photo']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                photo_id = fs.put(photo.read(), filename=filename) 
 
         events_collection.update_one(
             {'_id': ObjectId(event_id)},
@@ -392,7 +381,7 @@ def edit_event(event_id):
                 'date': date,
                 'time': time,
                 'location': location,
-                'photo': photo_url
+                'photo': photo_id
             }}
         )
 
